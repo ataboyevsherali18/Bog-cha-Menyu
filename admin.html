@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="uz"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin — Bog'cha menyu</title>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--tx:#17211c;--mu:#6e7a74;--ln:#e9e7e1;--ac:#0e6b4e;--ac2:#e7f2ec;--ac3:#0a5039;--bad:#c23b2e;--bad2:#fdecea;--warn:#a96a00;--warn2:#fff4dc;--sh:0 1px 2px rgba(20,30,25,.05),0 8px 24px rgba(20,30,25,.06)}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1311;--card:#171e1a;--tx:#e8f0eb;--mu:#8fa098;--ln:#25302a;--ac:#3fbf93;--ac2:#163428;--ac3:#8be3c3;--bad:#ff8577;--bad2:#3a1d1a;--warn:#f0c060;--warn2:#3a2f14;--sh:none}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0)}
+.wrap{max-width:900px;margin:auto;padding:0 16px 60px}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--ln);padding:calc(10px + env(safe-area-inset-top,0)) 0 10px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;max-width:900px;margin:auto;padding:0 16px}.bar b{font-size:18px}
+label{font-size:12px;color:var(--mu);display:block;margin-bottom:4px;font-weight:600}
+input,select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:11px 12px;width:100%;min-width:0}
+input:focus,select:focus{outline:0;border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 18%,transparent)}
+button{font:inherit;font-weight:600;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:12px;padding:10px 14px;cursor:pointer}
+button.p{background:linear-gradient(135deg,var(--ac),var(--ac3));color:#fff;border:0}button.x{color:var(--bad)}button.s{padding:7px 11px;font-size:14px}button:disabled{opacity:.5}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:20px;padding:18px;box-shadow:var(--sh);margin:16px 0}.card h2{font-size:17px;margin:0 0 12px}
+.note{font-size:13px;color:var(--mu);margin:6px 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.st{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:12px 14px}.st span{font-size:12px;color:var(--mu);font-weight:600}.st b{display:block;font-size:20px}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:4px;margin-top:16px}.tabs button{flex:1;border:0;background:transparent}.tabs button.on{background:var(--ac);color:#fff}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--ln);flex-wrap:wrap}.row:last-child{border:0}
+.code{font:700 17px ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--ac2);color:var(--ac3)}.tag.used{background:var(--bg);color:var(--mu)}.tag.bad{background:var(--bad2);color:var(--bad)}.tag.warn{background:var(--warn2);color:var(--warn)}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.new{background:var(--ac2);border-radius:14px;padding:12px;margin-top:12px}
+.login{max-width:380px;margin:12vh auto 0}
+#toast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;max-width:92vw;bottom:calc(20px + env(safe-area-inset-bottom,0));background:#16201b;color:#fff;padding:12px 16px;border-radius:14px;z-index:30;font-size:14px}
+@media(max-width:640px){.g2,.g3{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<div id="app"></div><div id="toast" hidden></div>
+<script src="config.js"></script>
+<script>
+const API=(window.CFG&&CFG.api)||"/api",$=id=>document.getElementById(id),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fm=v=>(+v||0).toLocaleString("ru-RU");let PW=sessionStorage.getItem("adm")||"",SET={},CODES=[],USERS=[],TAB="new",Q="",LAST=[];
+function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,4500)}
+async function api(p,o={}){let r;try{r=await fetch(API+p,{method:o.json?"POST":"GET",headers:{"x-admin":PW,...(o.json?{"content-type":"application/json"}:{})},body:o.json?JSON.stringify(o.json):undefined})}catch(e){throw new Error("Server bilan aloqa yo'q")}
+ const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||"Xatolik "+r.status);return j}
+const site=()=>location.origin+location.pathname.replace(/[^/]*$/,"");
+const link=c=>site()+"#k="+c;
+const dt=t=>t?new Date(t).toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+const ph=p=>p?"+"+p.slice(0,3)+" "+p.slice(3,5)+" "+p.slice(5,8)+" "+p.slice(8,10)+" "+p.slice(10):"";
+function msgFor(c){return"Assalomu alaykum! To'lovingiz tasdiqlandi ✅\n\nExcel yuklab olish uchun havolani bosing:\n"+link(c.code)+"\n\nYoki kod: "+c.code+"\n(Sayt: "+site()+" → Kirish → Kodni qo'shish)\nHavola bitta hisobga bir marta ishlaydi. Muddati: "+c.exp+" gacha."}
+function waLink(c,phone){return"https://wa.me/"+(phone||"")+"?text="+encodeURIComponent(msgFor(c))}
+function tgLink(c){return"https://t.me/share/url?url="+encodeURIComponent(link(c.code))+"&text="+encodeURIComponent(msgFor(c))}
+async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m||"✓ Nusxalandi")}catch(e){prompt("Nusxalang:",t)}}
+function copyCode(i){copy(LAST[i]?msgFor(LAST[i]):"","✓ Xabar nusxalandi")}
+function showLogin(msg){$("app").innerHTML=`<div class="wrap"><div class="card login"><h2>🔐 Admin panel</h2><label>Parol</label><input id="pw" type="password" onkeydown="if(event.key==='Enter')doLogin()"><button class="p" style="width:100%;margin-top:12px" onclick="doLogin()">Kirish</button><p class="note" id="lm">${esc(msg||"")}</p><p class="note">Parol Netlify → Environment variables → ADMIN_PASSWORD da qo'yilgan.</p></div></div>`}
+async function doLogin(){PW=$("pw").value;try{const r=await api("/admin/ping");SET=r.settings;sessionStorage.setItem("adm",PW);await load();draw()}catch(e){$("lm").textContent="✗ "+e.message}}
+async function load(){const[a,b]=await Promise.all([api("/admin/codes"),api("/admin/users")]);CODES=a.codes;USERS=b.users}
+function status(c){if(c.revoked)return["bad","Bekor qilingan"];if(c.usedBy)return["used","Ishlatilgan"];if(c.exp<new Date().toISOString().slice(0,10))return["warn","Muddati tugagan"];return["","Faol"]}
+function draw(){const act=CODES.filter(c=>status(c)[1]==="Faol").length,used=CODES.filter(c=>c.usedBy).length,rev=CODES.filter(c=>c.usedBy&&!c.free).reduce((s,c)=>s+c.count*SET.price,0);
+ $("app").innerHTML=`<header><div class="bar"><b>🍲 Admin panel</b><div class="acts"><button class="s" onclick="refresh()">↻ Yangilash</button><button class="s x" onclick="PW='';sessionStorage.removeItem('adm');showLogin()">Chiqish</button></div></div></header><div class="wrap">
+ <div class="stats"><div class="st"><span>Foydalanuvchilar</span><b>${USERS.length}</b></div><div class="st"><span>Faol kodlar</span><b>${act}</b></div><div class="st"><span>Ishlatilgan kodlar</span><b>${used}</b></div><div class="st"><span>Kodlar bo'yicha tushum</span><b>${fm(rev)}</b></div></div>
+ <div class="tabs"><button class="${TAB==="new"?"on":""}" onclick="TAB='new';draw()">➕ Yangi kod</button><button class="${TAB==="codes"?"on":""}" onclick="TAB='codes';draw()">🔑 Kodlar</button><button class="${TAB==="users"?"on":""}" onclick="TAB='users';draw()">👥 Foydalanuvchilar</button></div>
+ ${TAB==="new"?tNew():TAB==="codes"?tCodes():tUsers()}</div>`}
+function tNew(){return`<div class="card"><h2>To'lov tasdiqlandi — kod bering</h2>
+ <div class="g3"><div><label>Mijoz ismi / izoh</label><input id="note" placeholder="masalan: Dilnoza opa, 5-bog'cha"></div><div><label>Nechta yuklash</label><input id="cnt" type="number" min="1" max="50" value="1"></div><div><label>Necha kun amal qiladi</label><input id="days" type="number" min="1" max="365" value="30"></div></div>
+ <div class="g2" style="margin-top:12px"><div><label>Mijoz telefoni (ixtiyoriy)</label><input id="cph" inputmode="tel" placeholder="90 123 45 67"><p class="note" style="margin:4px 0 0">Yozsangiz, kod faqat shu raqamga ishlaydi va WhatsApp to'g'ridan-to'g'ri ochiladi.</p></div><div><label>Nechta kod</label><input id="qty" type="number" min="1" max="20" value="1"><p class="note" style="margin:4px 0 0">Bir necha mijozga bir vaqtda.</p></div></div>
+ <button class="p" style="width:100%;margin-top:14px" id="mk" onclick="mkCode()">Kod yaratish</button>
+ <div id="res"></div></div>
+ <div class="card"><h2>Foydalanuvchiga to'g'ridan-to'g'ri yuklash qo'shish</h2><p class="note" style="margin-top:0">Kod kerak emas — raqam bo'yicha hisobiga darrov qo'shiladi (foydalanuvchi ro'yxatdan o'tgan bo'lishi kerak).</p><div class="g3"><div><label>Telefon</label><input id="gph" inputmode="tel" placeholder="90 123 45 67"></div><div><label>Soni</label><input id="gcn" type="number" min="1" max="50" value="1"></div><div><label>Turi</label><select id="gty"><option value="paid">Pullik (bonusga sanaladi)</option><option value="bonus">Sovg'a / bonus (sanalmaydi)</option></select></div></div><button style="margin-top:12px" onclick="grant()">Qo'shish</button></div>`}
+async function mkCode(){const b=$("mk");b.disabled=true;try{const r=await api("/admin/codes/new",{json:{note:$("note").value,count:$("cnt").value,days:$("days").value,phone:$("cph").value,qty:$("qty").value}});LAST=r.codes;await load();
+ $("res").innerHTML=r.codes.map((c,i)=>`<div class="new"><div class="code">${c.code}</div><div class="note" style="margin:2px 0 8px">${c.count} ta yuklash · ${c.exp} gacha${c.note?" · "+esc(c.note):""}${c.phone?" · "+ph(c.phone):""}</div><div class="acts"><button class="p s" onclick="copyCode(${i})">📋 Xabarni nusxalash</button><a href="${waLink(c,c.phone)}" target="_blank"><button class="s">WhatsApp</button></a><a href="${tgLink(c)}" target="_blank"><button class="s">Telegram</button></a><button class="s" onclick="copy('${link(c.code)}','✓ Havola nusxalandi')">Havola</button></div></div>`).join("")}catch(e){toast("✗ "+e.message)}b.disabled=false}
+async function grant(){try{await api("/admin/users/grant",{json:{phone:$("gph").value,count:$("gcn").value,type:$("gty").value}});await load();toast("✓ Qo'shildi");draw();TAB="new";}catch(e){toast("✗ "+e.message)}}
+function tCodes(){const l=CODES.filter(c=>!Q||(c.code+c.note+c.phone+c.usedBy).toLowerCase().includes(Q.toLowerCase()));LAST=l;
+ return`<div class="card"><h2>Kodlar (${l.length})</h2><input placeholder="Qidirish: kod, ism, raqam..." value="${esc(Q)}" oninput="Q=this.value;draw();const e=$('q2');if(e){e.focus();e.setSelectionRange(Q.length,Q.length)}" id="q2" style="margin-bottom:6px">
+ ${l.map((c,i)=>{const[k,t]=status(c);return`<div class="row"><div><span class="code">${c.code}</span> <span class="tag ${k}">${t}</span><div class="note" style="margin:2px 0 0">${c.count} ta · ${c.exp} gacha${c.note?" · "+esc(c.note):""}${c.phone?" · uchun: "+ph(c.phone):""}<br>Yaratilgan: ${dt(c.created)}${c.usedBy?` · <b>${ph(c.usedBy)}</b> ishlatgan (${dt(c.usedAt)})`:""}</div></div><div class="acts">${!c.usedBy&&!c.revoked?`<button class="s" onclick="copyCode(${i})">📋</button><a href="${waLink(c,c.phone)}" target="_blank"><button class="s">WhatsApp</button></a><button class="s x" onclick="revoke('${c.code}')">Bekor</button>`:""}</div></div>`}).join("")||'<p class="note">Kod yo\'q</p>'}</div>`}
+async function revoke(c){if(!confirm(c+" kodi bekor qilinsinmi?"))return;try{await api("/admin/codes/revoke",{json:{code:c}});await load();draw();toast("✓ Bekor qilindi")}catch(e){toast("✗ "+e.message)}}
+function tUsers(){const l=USERS.filter(u=>!Q||u.phone.includes(Q.replace(/\D/g,"")||"~~"));
+ return`<div class="card"><h2>Foydalanuvchilar (${l.length})</h2><input placeholder="Raqam bo'yicha qidirish" value="${esc(Q)}" oninput="Q=this.value;draw();const e=$('q3');if(e){e.focus();e.setSelectionRange(Q.length,Q.length)}" id="q3" style="margin-bottom:6px">
+ ${l.map(u=>`<div class="row"><div><b>${ph(u.phone)}</b> ${u.freeAvail?'<span class="tag">oylik bepul bor</span>':""}<div class="note" style="margin:2px 0 0">Pullik: ${u.paidLeft} · Bonus: ${u.bonusLeft} · Jami pullik yuklagan: ${u.paidCount} (bonusgacha ${u.toBonus}) · Fayl: ${u.filesCount}<br>Ro'yxatdan o'tgan: ${dt(u.created)}</div></div><div class="acts"><button class="s" onclick="quick('${u.phone}')">+1 yuklash</button><button class="s" onclick="rpin('${u.phone}')">PIN tiklash</button></div></div>`).join("")||'<p class="note">Hali hech kim yo\'q</p>'}</div>`}
+async function quick(p){if(!confirm(ph(p)+" ga 1 ta pullik yuklash qo'shilsinmi?"))return;try{await api("/admin/users/grant",{json:{phone:p,count:1,type:"paid"}});await load();draw();toast("✓ Qo'shildi")}catch(e){toast("✗ "+e.message)}}
+async function rpin(p){const n=prompt(ph(p)+" uchun yangi PIN (4–8 raqam):");if(!n)return;try{await api("/admin/users/resetpin",{json:{phone:p,pin:n}});toast("✓ PIN o'rnatildi. Mijozga ayting.")}catch(e){toast("✗ "+e.message)}}
+async function refresh(){try{await load();draw();toast("✓ Yangilandi")}catch(e){toast("✗ "+e.message)}}
+(async()=>{if(PW){try{SET=(await api("/admin/ping")).settings;await load();draw();return}catch(e){}}showLogin()})();
+</script></body></html>
