@@ -84,6 +84,18 @@ button:disabled{opacity:.55;pointer-events:none}
 .perk{border:1px solid color-mix(in srgb,var(--ac) 18%,transparent)}
 @media(max-width:720px){.bg3 b{font-size:14px}.bg3>div{padding:9px 8px}.top .brand{font-size:16px}}
 @media print{.bn{display:none!important}}
+/* Bonus hisoblagichi */
+.bm{margin-top:14px;border-radius:20px;padding:16px;color:#fff;background:radial-gradient(260px 120px at 100% 0,rgba(243,217,139,.28),transparent 70%),linear-gradient(135deg,#0a5039,#0e6b4e 60%,#17896a);box-shadow:0 10px 26px rgba(14,107,78,.28)}
+.bm-t{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}.bm-t span{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.75}.bm-t b{display:block;font-size:19px;margin-top:2px}
+.bm-n{display:flex;align-items:baseline;gap:3px}.bm-n i{font-style:normal;font-size:34px;font-weight:800;line-height:1;color:#f3d98b}.bm-n small{font-size:15px;opacity:.7}
+.bm-d{display:grid;gap:5px;margin:14px 0 12px}.bm-d u{text-decoration:none;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.7)}
+.bm-d u.on{background:linear-gradient(135deg,#f6e3a1,#d9b04a);border-color:transparent;color:#4a3607}
+.bm-d u.gift{font-size:15px;border:2px solid #f3d98b;background:rgba(243,217,139,.18);box-shadow:0 0 0 3px rgba(243,217,139,.18)}.bm-d u.gift.on{background:linear-gradient(135deg,#f6e3a1,#d9b04a);animation:pop 1.2s ease-in-out infinite}
+@keyframes pop{50%{transform:scale(1.12)}}
+.bm-b{height:12px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden;margin:14px 0 12px}.bm-b i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#f6e3a1,#d9b04a)}
+.bm p{margin:0;font-size:13.5px;line-height:1.45;opacity:.92}.bm p b{color:#f3d98b}
+@media(max-width:380px){.bm-d u{font-size:9px}.bm-t b{font-size:17px}}
+
 </style></head><body>
 <header class="top noprint"><div class="wrap bar"><div class="brand"><div class="logo">🍲</div><span id="brand"></span></div><button id="lic" class="acc" onclick="openPay()">Kirish</button></div></header>
 <main class="wrap">
@@ -216,15 +228,21 @@ async function api(path,o={}){const h=Object.assign({},o.headers||{}),t=lsg("men
 function setMe(m){ME=m;LIC={ok:!!m&&(m.paidLeft+m.bonusLeft>0||m.paidCount>0),left:m?m.total:0};updLic();renderBonus();renderArch()}
 async function refreshMe(){if(!lsg("menyu-token"))return;try{setMe((await api("/me")).me)}catch(e){}}
 async function initMe(){try{const c=await api("/config");["price","bonusEvery","bonusFree","freeMonthly"].forEach(k=>{if(c[k]!=null)CFG[k]=c[k]})}catch(e){}await refreshMe();updLic();renderBonus()}
+function devId(){let d=lsg("menyu-dev");if(!d){d=Array.from(crypto.getRandomValues(new Uint8Array(16)),x=>x.toString(16).padStart(2,"0")).join("");lss("menyu-dev",d)}return d}
 const maskPh=p=>p?"+"+p.slice(0,3)+" "+p.slice(3,5)+" "+p.slice(5,8)+" "+p.slice(8,10)+" "+p.slice(10):"";
 /* ---- Yuqori tugma, bonus paneli ---- */
 function updLic(){const b=$("lic");if(b){b.className="acc"+(ME?" in":"");b.textContent=ME?(ME.total>0?"🔓 "+ME.total+" ta yuklash":"👤 Hisobim"):"Kirish"}
- const d=$("dlb");if(d)d.textContent=!ME?(CFG.freeMonthly>0?"🎁 Excel yuklab olish · bu oy bepul":"🔒 Excel yuklab olish"):ME.total>0?"⬇ Excel yuklab olish · "+ME.total+" ta ochiq":"🔒 Excel yuklab olish · "+fm(CFG.price,0)+" so'm";if(D)calc()}
+ const d=$("dlb");if(d)d.textContent=!ME?"⬇ Excel yuklab olish":ME.total>0?"⬇ Excel yuklab olish · "+ME.total+" ta ochiq":"🔒 Excel yuklab olish · "+fm(CFG.price,0)+" so'm";if(D)calc()}
 function renderBonus(){const el=$("bonus");if(!el)return;const perk=CFG.bonusEvery>0&&CFG.bonusFree>0;
- if(!ME){el.innerHTML=`<div class="bn"><div class="bh"><b>🎁 Bonuslar</b><button class="acc p" onclick="AM='reg';openPay()">Kirish</button></div><p class="note" style="margin:8px 0 0">${CFG.freeMonthly>0?"Har oy 1 ta bepul yuklash. ":""}${perk?`Har ${CFG.bonusEvery} ta pullik yuklashdan keyin ${CFG.bonusFree} ta bepul bonus. `:""}Hisob ochsangiz, qancha qolgani shu yerda ko'rinadi.</p></div>`;return}
+ if(!ME){el.innerHTML=`<div class="bn"><div class="bh"><b>🎁 Bonuslar</b><button class="acc p" onclick="AM='reg';openPay()">Kirish</button></div><p class="note" style="margin:8px 0 0">${CFG.freeMonthly>0?"Har oy 1 ta bepul yuklash (admin tasdiqlagach). ":""}${perk?`Har ${CFG.bonusEvery} ta pullik yuklashdan keyin ${CFG.bonusFree} ta bepul bonus. `:""}Hisob ochsangiz, qancha qolgani shu yerda ko'rinadi.</p></div>`;return}
  const m=ME;el.innerHTML=`<div class="bn"><div class="bh"><b>🎁 Bonuslarim</b><button class="acc" onclick="openPay()">Hisobim</button></div>
- <div class="bg3"><div class="${m.freeAvail?"on":""}"><span>Bu oy bepul</span><b>${m.freeAvail?"1 ta bor":"ishlatilgan"}</b>${m.freeAvail?"":"<small>keyingi oy yana 1 ta</small>"}</div><div class="${m.bonusLeft?"on":""}"><span>Bonus yuklash</span><b>${m.bonusLeft} ta</b></div><div class="${m.paidLeft?"on":""}"><span>Pullik yuklash</span><b>${m.paidLeft} ta</b></div></div>
- ${perk?`<div class="pg"><div class="pgt"><span>Bonusgacha</span><b>${m.progress} / ${m.bonusEvery}</b></div><div class="bar2"><i style="width:${Math.round(m.progress/m.bonusEvery*100)}%"></i></div><p class="note" style="margin:6px 0 0">Yana <b>${m.toBonus} ta</b> pullik yuklashdan keyin <b>${m.bonusFree} ta bepul bonus</b> olasiz.</p></div>`:""}</div>`}
+ <div class="bg3"><div class="${m.freeAvail?"on":""}"><span>Bu oy bepul</span><b>${m.freeAvail?"1 ta bor":m.approved?"ishlatilgan":"tasdiq kutilmoqda"}</b>${m.freeAvail?"":m.approved?"<small>keyingi oy yana 1 ta</small>":"<small>admin tasdiqlaydi</small>"}</div><div class="${m.bonusLeft?"on":""}"><span>Bonus yuklash</span><b>${m.bonusLeft} ta</b></div><div class="${m.paidLeft?"on":""}"><span>Pullik yuklash</span><b>${m.paidLeft} ta</b></div></div>
+ ${perk?bonusMeter(m):""}</div>`}
+function bonusMeter(m){const E=m.bonusEvery,p=m.progress,left=m.toBonus;let viz;
+ if(E<=12){viz='<div class="bm-d" style="grid-template-columns:repeat('+E+',1fr)">'+Array.from({length:E},(_,i)=>i===E-1?'<u class="gift'+(p>=E?" on":"")+'">🎁</u>':'<u class="'+(i<p?"on":"")+'">'+(i<p?"✓":i+1)+'</u>').join("")+'</div>'}
+ else{viz='<div class="bm-b"><i style="width:'+Math.round(p/E*100)+'%"></i></div>'}
+ const earned=m.paidCount>0&&p===0;
+ return`<div class="bm"><div class="bm-t"><div><span>Bonusgacha</span><b>${left===1?"Oxirgi 1 ta qoldi!":"Yana "+left+" ta qoldi"}</b></div><div class="bm-n"><i>${p}</i><small>/ ${E}</small></div></div>${viz}<p>${earned?"🎉 Oxirgi bonus berildi, yangi sanoq boshlandi. ":""}Har <b>${E} ta</b> pullik yuklashdan keyin <b>${m.bonusFree} ta bepul bonus</b> olasiz.${m.bonusLeft>0?` Hozir sizda <b>${m.bonusLeft} ta</b> bonus yuklash bor.`:""}</p></div>`}
 /* ---- Fayllarim (serverda saqlanadi) ---- */
 const kindLab=k=>k==="free"?"🎁 Bepul (oylik)":k==="bonus"?"⭐ Bonus":"💳 Pullik";
 const dstr=t=>{const d=new Date(t);return d.getDate()+" "+MON[d.getMonth()]+", "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
@@ -253,6 +271,7 @@ function sampleXl(){xlRun([FD()],true,"menyu-namuna")}
 function closeHero(){$("hero").hidden=true;lss("menyu-hero","1")}
 /* ---- To'lov xabari ---- */
 const payMsg=()=>"Assalomu alaykum! Menyu Excel (22 kun) yuklab olish uchun "+fm(CFG.price,0)+" so'm to'lov qildim."+(ME?" Hisob raqamim: +"+ME.phone+".":"")+" Chekni yuboryapman.";
+const waApprove=()=>"https://wa.me/"+CFG.wa+"?text="+encodeURIComponent("Assalomu alaykum! Hisobimni tasdiqlang"+(ME?" (+"+ME.phone+")":"")+", oylik bepul yuklash uchun.");
 function waHref(){return"https://wa.me/"+CFG.wa+"?text="+encodeURIComponent(payMsg())}
 function copyMsg(){try{navigator.clipboard.writeText(payMsg())}catch(e){}const n=$("tgn");if(n)n.textContent="Xabar nusxalandi. Telegram'da joylashtiring va chek rasmini qo'shib yuboring."}
 function copyCard(){try{navigator.clipboard.writeText(CFG.card.replace(/\s/g,""))}catch(e){}$("cpb").textContent="✓ Nusxalandi";setTimeout(()=>{const e=$("cpb");if(e)e.textContent="Nusxa"},1500)}
@@ -262,7 +281,7 @@ async function activate(){const c=$("code").value.trim();if(!c){$("pmsg").textCo
  if(m){$("pmsg").textContent="✗ "+m;return}if(AFTER){AFTER=false;closePay();xl()}else renderPay()}
 function setAM(m){const ph=$("ph")?$("ph").value:"";AM=m;renderPay();if($("ph"))$("ph").value=ph}
 async function doAuth(){const ph=$("ph").value,pin=$("pin").value,b=$("authb");b.disabled=true;$("pmsg").textContent="";
- try{const r=await api(AM==="reg"?"/register":"/login",{json:{phone:ph,pin}});lss("menyu-token",r.token);setMe(r.me);
+ try{const r=await api(AM==="reg"?"/register":"/login",{json:{phone:ph,pin,dev:devId()}});lss("menyu-token",r.token);setMe(r.me);
   if(PCODE){const m=await redeemCode(PCODE);if(m)toast("✗ "+m)}
   if(AFTER&&ME.total>0){AFTER=false;closePay();xl()}else renderPay()}
  catch(e){$("pmsg").textContent="✗ "+e.msg;b.disabled=false}}
@@ -271,7 +290,7 @@ async function chPin(){const o=prompt("Hozirgi PIN:");if(!o)return;const n=promp
 function closePay(){$("pay").hidden=true;AFTER=false}
 async function openPay(){renderPay();$("pay").hidden=false;if(ME)refreshMe().then(()=>{if(!$("pay").hidden&&document.activeElement&&document.activeElement.tagName!=="INPUT")renderPay()})}
 function renderPay(){const X='<button class="cl" onclick="closePay()">✕</button>',perk=CFG.bonusEvery>0&&CFG.bonusFree>0;
- const perks=[perk?`🎁 Har ${CFG.bonusEvery} ta pullik yuklashdan keyin ${CFG.bonusFree} ta bepul bonus`:"",CFG.freeMonthly>0?"🎁 Har oy 1 marta bepul yuklash":"","📁 Yuklagan fayllaringiz «Fayllarim»da saqlanadi — istalgan payt qayta yuklab olasiz","📱 Istalgan telefondan kirsangiz bo'ladi"].filter(Boolean).map(t=>`<div class="perk">${t}</div>`).join("");
+ const perks=[perk?`🎁 Har ${CFG.bonusEvery} ta pullik yuklashdan keyin ${CFG.bonusFree} ta bepul bonus`:"",CFG.freeMonthly>0?"🎁 Har oy 1 marta bepul yuklash (admin hisobingizni tasdiqlagach)":"","📁 Yuklagan fayllaringiz «Fayllarim»da saqlanadi — istalgan payt qayta yuklab olasiz","📱 Istalgan telefondan kirsangiz bo'ladi"].filter(Boolean).map(t=>`<div class="perk">${t}</div>`).join("");
  const keepCode=document.activeElement&&document.activeElement.id==="code"?$("code").value:($("code")?$("code").value:"");
  if(!ME){const reg=AM==="reg";$("pay").innerHTML=`<div class="pbox">${X}<h2>${reg?"Hisob yaratish":"Hisobga kirish"}</h2><p class="note" style="margin:0 0 12px">Hisob — bonuslaringiz, bepul yuklashlaringiz va fayllaringizni saqlaydi.</p>
   ${PCODE?`<div class="perk" style="margin-bottom:12px">🔑 Kodingiz tayyor: <b>${esc(PCODE)}</b>. Kirishingiz bilan avtomatik qo'shiladi.</div>`:""}
@@ -284,8 +303,9 @@ function renderPay(){const X='<button class="cl" onclick="closePay()">✕</butto
  <div class="stp"><h3><i>2</i> Chekni yuboring</h3>${CFG.wa?`<a href="${waHref()}" target="_blank"><button class="p wide">WhatsApp'da chek yuborish</button></a>`:""}${CFG.tg?`<a href="https://t.me/${CFG.tg}" target="_blank" onclick="copyMsg()"><button class="wide" style="margin-top:8px">Telegram'da chek yuborish</button></a><p class="note" id="tgn"></p>`:""}</div>
  <div class="stp"><h3><i>3</i> Havola yoki kod keladi</h3><p class="note" style="margin:0">Admin tasdiqlagach sizga havola yuboradi — uni bossangiz, yuklash o'zi hisobingizga qo'shiladi. Havola bir marta ishlaydi.</p></div>`;
  $("pay").innerHTML=`<div class="pbox">${X}<h2>Hisobim</h2><p class="note" style="margin:0 0 12px">${maskPh(m.phone)}</p>
-  <div class="bg3"><div class="${m.freeAvail?"on":""}"><span>Bu oy bepul</span><b>${m.freeAvail?"1 ta bor":"ishlatilgan"}</b></div><div class="${m.bonusLeft?"on":""}"><span>Bonus</span><b>${m.bonusLeft} ta</b></div><div class="${m.paidLeft?"on":""}"><span>Pullik</span><b>${m.paidLeft} ta</b></div></div>
-  ${perk?`<div class="pg" style="margin-top:12px"><div class="pgt"><span>Bonusgacha</span><b>${m.progress} / ${m.bonusEvery}</b></div><div class="bar2"><i style="width:${Math.round(m.progress/m.bonusEvery*100)}%"></i></div><p class="note" style="margin:6px 0 0">Yana <b>${m.toBonus} ta</b> pullik yuklashdan keyin <b>${m.bonusFree} ta bepul bonus</b>.</p></div>`:""}
+  <div class="bg3"><div class="${m.freeAvail?"on":""}"><span>Bu oy bepul</span><b>${m.freeAvail?"1 ta bor":m.approved?"ishlatilgan":"tasdiq kutilmoqda"}</b></div><div class="${m.bonusLeft?"on":""}"><span>Bonus</span><b>${m.bonusLeft} ta</b></div><div class="${m.paidLeft?"on":""}"><span>Pullik</span><b>${m.paidLeft} ta</b></div></div>
+  ${!m.approved&&CFG.freeMonthly>0?`<div class="perk" style="margin-top:12px">⏳ Oylik bepul yuklash admin tasdiqlagandan keyin ochiladi. Tasdiq uchun adminga yozing.${CFG.wa?` <a href="${waApprove()}" target="_blank"><button class="wide" style="margin-top:8px">WhatsApp'da tasdiq so'rash</button></a>`:""}</div>`:""}
+  ${perk?bonusMeter(m):""}
   ${m.total>0?`<button class="p wide" style="margin-top:14px" onclick="xl()">⬇ Hozir yuklab olish (${m.total} ta ochiq)</button><button class="wide" style="margin:8px 0 0" onclick="closePay()">Avval sozlayman</button>${m.nextExp?`<p class="note">Pullik yuklashlar ${m.nextExp} gacha amal qiladi.</p>`:""}`:`<div class="perk" style="margin-top:14px">Hozir ochiq yuklash yo'q. Pastdagi 3 qadamni bajaring.</div>`}
   <div class="stp" style="margin-top:14px"><h3>🔑 Kodingiz bormi?</h3><input id="code" placeholder="XXXXX-XXXXX yoki havola" value="${esc(keepCode)}" onkeydown="if(event.key==='Enter')activate()"><button class="wide" id="actb" style="margin-top:8px" onclick="activate()">Kodni qo'shish</button><p class="note" id="pmsg"></p></div>
   ${m.total>0?`<details class="more"><summary>Yana yuklash uchun to'lov</summary>${pay}</details>`:pay}
